@@ -350,31 +350,33 @@ export default function Home() {
                   max={100}
                   value={progressValue}
                 />
-                <ul className="mt-4 space-y-2">
-                  {pdfFiles.map((file) => {
-                    const status = fileStatuses[file.name] ?? "pending";
-                    const badgeClass =
-                      status === "complete"
-                        ? "bg-emerald-500/10 text-emerald-200"
-                        : status === "failed"
-                        ? "bg-rose-500/10 text-rose-200"
-                        : status === "processing"
-                        ? "bg-amber-500/10 text-amber-200"
-                        : "bg-slate-700 text-slate-300";
+                <div className="mt-4 max-h-64 overflow-y-auto pr-1">
+                  <ul className="space-y-2">
+                    {pdfFiles.map((file) => {
+                      const status = fileStatuses[file.name] ?? "pending";
+                      const badgeClass =
+                        status === "complete"
+                          ? "bg-emerald-500/10 text-emerald-200"
+                          : status === "failed"
+                          ? "bg-rose-500/10 text-rose-200"
+                          : status === "processing"
+                          ? "bg-amber-500/10 text-amber-200"
+                          : "bg-slate-700 text-slate-300";
 
-                    return (
-                      <li
-                        key={file.name}
-                        className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/80 px-3 py-2 text-sm"
-                      >
-                        <span className="truncate text-slate-200">{file.name}</span>
-                        <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${badgeClass}`}>
-                          {status}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
+                      return (
+                        <li
+                          key={file.name}
+                          className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/80 px-3 py-2 text-sm"
+                        >
+                          <span className="truncate text-slate-200">{file.name}</span>
+                          <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${badgeClass}`}>
+                            {status}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
               </div>
             ) : null}
 
