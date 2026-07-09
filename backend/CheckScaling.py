@@ -73,8 +73,10 @@ def check_scaling(pdf_folder: str, _reference_filename: Optional[str] = None) ->
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        raise SystemExit("Usage: python CheckScaling.py <pdf_folder> <reference_filename>")
+    if len(sys.argv) < 2:
+        raise SystemExit("Usage: python CheckScaling.py <pdf_folder>")
 
-    result = check_scaling(sys.argv[1], sys.argv[2])
+    pdf_folder = sys.argv[1]
+    # Ignore any provided filename; the function always uses the first PDF
+    result = check_scaling(pdf_folder)
     print(json.dumps(result))
