@@ -5,6 +5,7 @@ import { ChangeEvent, useState } from "react";
 export default function Home() {
   const [pdfFiles, setPdfFiles] = useState<File[]>([]);
   const [excelFile, setExcelFile] = useState<File | null>(null);
+  const [useExcel, setUseExcel] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [captureRunning, setCaptureRunning] = useState(false);
   const [resultSummary, setResultSummary] = useState<string | null>(null);
@@ -39,8 +40,21 @@ export default function Home() {
     setExcelFile(file);
   };
 
+  const handleExcelToggle = (event: ChangeEvent<HTMLInputElement>) => {
+    const checked = event.target.checked;
+    setUseExcel(checked);
+    if (!checked) {
+      setExcelFile(null);
+    }
+  };
+
   const handleProcess = async () => {
     if (!pdfFiles.length) {
+      return;
+    }
+
+    if (useExcel && !excelFile) {
+      setErrorMessage("Please upload an Excel file before processing.");
       return;
     }
 
@@ -84,6 +98,11 @@ export default function Home() {
 
   const handleCaptureCoordinates = async () => {
     if (!pdfFiles.length) return;
+
+    if (useExcel && !excelFile) {
+      setCaptureError("Please upload an Excel file before capturing coordinates.");
+      return;
+    }
 
     setCaptureRunning(true);
     setCaptureError(null);
@@ -164,7 +183,7 @@ export default function Home() {
     }
   };
 
-  const isReady = pdfFiles.length > 0;
+  const isReady = pdfFiles.length > 0 && (!useExcel || !!excelFile);
 
   const progressLabel = isProcessing || captureRunning ? "Processing PDFs" : "Ready";
   const progressMax = pdfFiles.length > 0 ? pdfFiles.length : 1;
@@ -252,7 +271,7 @@ export default function Home() {
                   </p>
                 </div>
                 <span className="rounded-full bg-cyan-500/10 px-3 py-1 text-sm font-medium text-cyan-300">
-                  Step 1
+                  Required
                 </span>
               </div>
 
@@ -282,40 +301,64 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-lg shadow-black/10">
+            <label className="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3">
+                <input
+                  type="checkbox"
+                  checked={useExcel}
+                  onChange={handleExcelToggle}
+                  className="h-4 w-4 rounded border-slate-700 bg-slate-950 text-violet-500 focus:ring-violet-500"
+                />
+                <span className="text-sm font-medium text-slate-100">
+                  I want to upload an Excel file
+                </span>
+              </label>
+              
+            <div className={`rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-lg shadow-black/10 ${useExcel ? "opacity-100" : "opacity-30"}`}>
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-semibold">Excel sheet</h2>
                   <p className="mt-1 text-sm text-slate-400">
-                    Upload the spreadsheet that should be used for matching.
+                    Enable this only when you need a matching spreadsheet.
                   </p>
                 </div>
                 <span className="rounded-full bg-violet-500/10 px-3 py-1 text-sm font-medium text-violet-300">
-                  Step 2
+                  Optional
                 </span>
               </div>
 
-              <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-slate-950/70 px-6 py-10 text-center transition hover:border-violet-400 hover:bg-slate-950">
-                <input
-                  type="file"
-                  className="sr-only"
-                  onChange={handleExcelSelection}
-                  accept=".xlsx,.xls,.csv"
-                />
-                <span className="text-lg font-medium text-slate-100">
-                  Upload Excel file
-                </span>
-                <span className="mt-2 text-sm text-slate-400">
-                  Accepted formats: .xlsx, .xls, .csv
-                </span>
-              </label>
+              
 
-              <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                <p className="text-sm font-medium text-slate-200">Selection</p>
-                <p className="mt-1 text-sm text-slate-400">
-                  {excelFile ? excelFile.name : "No Excel sheet uploaded yet."}
-                </p>
-              </div>
+              {useExcel ? (
+                <>
+                  <label className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-slate-950/70 px-6 py-10 text-center transition hover:border-violet-400 hover:bg-slate-950">
+                    <input
+                      type="file"
+                      className="sr-only"
+                      onChange={handleExcelSelection}
+                      accept=".xlsx,.xls,.csv"
+                    />
+                    <span className="text-lg font-medium text-slate-100">
+                      Upload Excel file
+                    </span>
+                    <span className="mt-2 text-sm text-slate-400">
+                      Accepted formats: .xlsx, .xls, .csv
+                    </span>
+                  </label>
+
+                  <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+                    <p className="text-sm font-medium text-slate-200">Selection</p>
+                    <p className="mt-1 text-sm text-slate-400">
+                      {excelFile ? excelFile.name : "No Excel sheet uploaded yet."}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+                  <p className="text-sm text-slate-400">
+                    Excel input is optional and will be skipped until you enable it.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -334,7 +377,7 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-400">Excel sheet</span>
                 <span className="font-medium text-slate-100">
-                  {excelFile ? "Attached" : "Pending"}
+                  {useExcel ? (excelFile ? "Attached" : "Required") : "Not used"}
                 </span>
               </div>
             </div>
@@ -390,7 +433,9 @@ export default function Home() {
                 ? "Processing..."
                 : isReady
                   ? "Start processing"
-                  : "Upload both inputs to continue"}
+                  : useExcel
+                    ? "Upload PDFs and Excel to continue"
+                    : "Upload PDF files to continue"}
             </button>
 
             {resultSummary ? (
