@@ -61,11 +61,10 @@ export async function POST(request: NextRequest) {
       );
     });
 
-    const referencePdf = savedPdfNames[0];
     const scalingResult = await new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
       execFile(
         pythonExecutable,
-        [scalingScriptPath, pdfDir, referencePdf],
+        [scalingScriptPath, pdfDir],
         { cwd: process.cwd() },
         (error, stdout, stderr) => {
           if (error) {

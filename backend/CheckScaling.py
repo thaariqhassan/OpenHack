@@ -1,15 +1,24 @@
 import json
 import os
 import sys
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import fitz
 
 
-def check_scaling(pdf_folder: str, reference_filename: str) -> Dict[str, Any]:
+def check_scaling(pdf_folder: str, _reference_filename: Optional[str] = None) -> Dict[str, Any]:
+    """Compare PDFs in `pdf_folder` against the first PDF in the folder.
+
+    The function always selects the first `.pdf` (sorted by filename) as the
+    reference, ignoring any filename passed in. Width and height are read from
+    `page.rect` of the reference's first page.
+    """
+
+    pdf_names = [n for n in sorted(os.listdir(pdf_folder)) if n.lower().endswith(".pdf")]
+    if not pdf_names:
+        raise FileNotFoundError(f"No PDFs found in folder: {pdf_folder}")
+    reference_filename = pdf_names[0]
     reference_path = os.path.join(pdf_folder, reference_filename)
-    if not os.path.isfile(reference_path):
-        raise FileNotFoundError(f"Reference PDF not found: {reference_path}")
 
     reference_doc = fitz.open(reference_path)
     reference_page = reference_doc[0]
@@ -23,7 +32,7 @@ def check_scaling(pdf_folder: str, reference_filename: str) -> Dict[str, Any]:
 
     for file_name in sorted(os.listdir(pdf_folder)):
         full_path = os.path.join(pdf_folder, file_name)
-        if not os.path.isfile(full_path) or file_name == reference_filename:
+        if not os.path.isfile(full_path) or not file_name.lower().endswith(".pdf") or file_name == reference_filename:
             continue
 
         doc = fitz.open(full_path)
