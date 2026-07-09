@@ -11,15 +11,6 @@ restricted_contents = [
     "\"", "-", ".", "°", "/", "\\", ",", "(", ")"
 ]
 
-mappedFiles = [
-    'of50137o.pdf',
-    'pm50001l.pdf',
-    'po50001sn.pdf',
-    'po50011o.pdf',
-    'ps50016e.pdf',
-    'ps50026b.pdf',
-    'ai50039q.pdf'
-]
 
 arr = []
 
@@ -28,7 +19,7 @@ for name in os.listdir(folder_path):
     full_path = os.path.join(folder_path, name)
     dr_name = name.split(".")[0]
 
-    if os.path.isfile(full_path) and name in mappedFiles:
+    if os.path.isfile(full_path):
 
         file_df = df.loc[df["P&ID DRG NO."] == dr_name]
 

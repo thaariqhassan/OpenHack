@@ -75,6 +75,7 @@ export default function Home() {
 
     const formData = new FormData();
     pdfFiles.forEach((file) => formData.append("pdfFiles", file));
+    if (excelFile) formData.append("excelFile", excelFile);
 
     try {
       const response = await fetch("/api/capture-coordinates", {

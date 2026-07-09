@@ -33,10 +33,23 @@ export async function POST(request: NextRequest) {
       process.platform === "win32" ? "Scripts/python.exe" : "bin/python"
     );
 
+    const excelEntry = formData.get("excelFile");
+    let excelPath: string | null = null;
+    if (excelEntry instanceof File) {
+      const safeExcelName = excelEntry.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      excelPath = path.join(tempDir, safeExcelName);
+      const excelBuffer = Buffer.from(await excelEntry.arrayBuffer());
+      await fs.writeFile(excelPath, excelBuffer);
+    }
+
     await new Promise<void>((resolve, reject) => {
+      const args = excelPath
+        ? [scriptPath, pdfDir, outputPath, excelPath]
+        : [scriptPath, pdfDir, outputPath];
+
       execFile(
         pythonExecutable,
-        [scriptPath, pdfDir, outputPath],
+        args,
         { cwd: process.cwd() },
         (error, _stdout, stderr) => {
           if (error) {
