@@ -6,10 +6,13 @@ export default function Home() {
   const [pdfFiles, setPdfFiles] = useState<File[]>([]);
   const [excelFile, setExcelFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [captureRunning, setCaptureRunning] = useState(false);
   const [resultSummary, setResultSummary] = useState<string | null>(null);
   const [multiPageSummary, setMultiPageSummary] = useState<string | null>(null);
   const [scalingSummary, setScalingSummary] = useState<string | null>(null);
+  const [captureMessage, setCaptureMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [captureError, setCaptureError] = useState<string | null>(null);
   const [lastData, setLastData] = useState<any | null>(null);
 
   const handlePdfSelection = (event: ChangeEvent<HTMLInputElement>) => {
@@ -24,7 +27,7 @@ export default function Home() {
   };
 
   const handleProcess = async () => {
-    if (!pdfFiles.length || !excelFile) {
+    if (!pdfFiles.length) {
       return;
     }
 
@@ -36,7 +39,7 @@ export default function Home() {
 
     const formData = new FormData();
     pdfFiles.forEach((file) => formData.append("pdfFiles", file));
-    formData.append("excelFile", excelFile);
+    if (excelFile) formData.append("excelFile", excelFile);
 
     try {
       const response = await fetch("/api/check-rotation", {
@@ -61,7 +64,48 @@ export default function Home() {
     }
   };
 
-  const isReady = pdfFiles.length > 0 && excelFile;
+  const handleCaptureCoordinates = async () => {
+    if (!pdfFiles.length) {
+      return;
+    }
+
+    setCaptureRunning(true);
+    setCaptureError(null);
+    setCaptureMessage(null);
+
+    const formData = new FormData();
+    pdfFiles.forEach((file) => formData.append("pdfFiles", file));
+
+    try {
+      const response = await fetch("/api/capture-coordinates", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Capture failed");
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "capture_coordinates.xlsx";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+
+      setCaptureMessage("Capture complete. Download should begin shortly.");
+    } catch (error) {
+      setCaptureError(error instanceof Error ? error.message : "Capture failed");
+    } finally {
+      setCaptureRunning(false);
+    }
+  };
+
+  const isReady = pdfFiles.length > 0;
 
   function RotationChart({ total, rotated }: { total: number; rotated: number }) {
     const notRotated = Math.max(0, total - rotated);
@@ -260,6 +304,27 @@ export default function Home() {
             {scalingSummary ? (
               <p className="mt-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-300">
                 {scalingSummary}
+              </p>
+            ) : null}
+
+            <button
+              type="button"
+              className="mt-6 w-full rounded-2xl bg-violet-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-violet-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+              disabled={!isReady || captureRunning}
+              onClick={handleCaptureCoordinates}
+            >
+              {captureRunning ? "Capturing..." : "Capture coordinates"}
+            </button>
+
+            {captureMessage ? (
+              <p className="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">
+                {captureMessage}
+              </p>
+            ) : null}
+
+            {captureError ? (
+              <p className="mt-4 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
+                {captureError}
               </p>
             ) : null}
 

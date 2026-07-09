@@ -12,11 +12,8 @@ export async function POST(request: NextRequest) {
 
     const pdfFiles = pdfEntries.filter((entry): entry is File => entry instanceof File);
 
-    if (pdfFiles.length === 0 || !(excelEntry instanceof File)) {
-      return NextResponse.json(
-        { error: "Please upload at least one PDF and an Excel file." },
-        { status: 400 }
-      );
+    if (pdfFiles.length === 0) {
+      return NextResponse.json({ error: "Please upload at least one PDF." }, { status: 400 });
     }
 
     const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "plotvisionaries-"));
@@ -32,9 +29,12 @@ export async function POST(request: NextRequest) {
       savedPdfNames.push(safeName);
     }
 
-    const excelPath = path.join(tempDir, "uploaded.xlsx");
-    const excelBuffer = Buffer.from(await excelEntry.arrayBuffer());
-    await fs.writeFile(excelPath, excelBuffer);
+    let excelPath = "";
+    if (excelEntry instanceof File) {
+      excelPath = path.join(tempDir, "uploaded.xlsx");
+      const excelBuffer = Buffer.from(await excelEntry.arrayBuffer());
+      await fs.writeFile(excelPath, excelBuffer);
+    }
 
     const outputPath = path.join(tempDir, "rotated.xlsx");
     const rotationScriptPath = path.join(process.cwd(), "backend", "CheckRotation.py");
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const rotationResult = await new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
       execFile(
         pythonExecutable,
-        [rotationScriptPath, pdfDir, excelPath, outputPath],
+        [rotationScriptPath, pdfDir, excelPath || "", outputPath],
         { cwd: process.cwd() },
         (error, stdout, stderr) => {
           if (error) {
