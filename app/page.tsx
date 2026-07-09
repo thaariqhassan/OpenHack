@@ -312,7 +312,7 @@ export default function Home() {
                   I want to upload an Excel file
                 </span>
               </label>
-              
+
             <div className={`rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-lg shadow-black/10 ${useExcel ? "opacity-100" : "opacity-30"}`}>
               <div className="mb-4 flex items-center justify-between">
                 <div>
@@ -365,7 +365,7 @@ export default function Home() {
           <aside className="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-lg shadow-black/10">
             <h2 className="text-xl font-semibold">Ready to process</h2>
             <p className="mt-2 text-sm leading-6 text-slate-400">
-              Once both files are ready, you can continue with your document
+              Once the files are ready, you can continue with your document
               workflow.
             </p>
 
@@ -432,10 +432,10 @@ export default function Home() {
               {isProcessing
                 ? "Processing..."
                 : isReady
-                  ? "Start processing"
+                  ? "Start Analysis"
                   : useExcel
-                    ? "Upload PDFs and Excel to continue"
-                    : "Upload PDF files to continue"}
+                    ? "Start Analysis"
+                    : "Start Analysis"}
             </button>
 
             {resultSummary ? (
